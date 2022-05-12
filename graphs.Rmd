@@ -66,7 +66,60 @@ icesheetsplot_df <- icesheets_df %>%
 ```
 
 # plots
+## arctic ice sheets plot
 ```{r}
+arcticplot_df %>% 
+  ggplot(aes(year, area)) +
+  geom_point() +
+  geom_line() +
+  labs(x = NULL,
+       y = "Amount of Ice (million square kilometers)",
+       title = "Average Monthly Amount of Arctic Sea Ice \n 1979-2013") +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 10,
+                               angle = 45),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 10)
+  )
+  
+```
 
+## temp plot
+```{r}
+tempplot_df %>% 
+  filter(Year >= 1980) %>% 
+  ggplot(aes(Year, No_Smoothing)) +
+  geom_point() +
+  geom_line()
+  
+```
+
+## ozone plot
+```{r}
+ozoneplot_df %>% 
+  filter(year != 2021) %>% 
+  ggplot(aes(year, area)) +
+  geom_point() +
+  geom_line()
+  
+```
+
+## CO2 plot --- issue here bc i need to avg the monthly avgs to make an annual avg
+```{r}
+co2plot_df %>% 
+  ggplot(aes(year, monthly_avg)) +
+  geom_point() +
+  geom_line()
+```
+
+## ice sheets 
+```{r}
+arcticplot_df %>% 
+  ggplot(aes(year, area)) +
+  geom_point() +
+  geom_line()
 ```
 
