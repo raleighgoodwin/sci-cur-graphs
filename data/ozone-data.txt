@@ -1,13 +1,5 @@
-# http://ozonewatch.gsfc.nasa.gov/meteorology/ytd_data.txt
-# TOMS. OMI. and OMPS data
-# Missing data filled from NASA GMAO MERRA, MERRA-2, and GEOS FP
-# Southern Hemisphere
-# Maximum of daily ozone hole area
-# Minimum of daily minimum ozone
          Ozone Hole Area       Minimum Ozone
           Date     Value      Date     Value
-Year    (YYMM) (mil km2)    (YYMM)      (DU)
-----    ------ ---------    ------     -----
 1979      0917       1.1      0917     194.0
 1980      0921       3.3      1016     192.0
 1981      1010       3.1      1010     195.0
