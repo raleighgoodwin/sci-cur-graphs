@@ -10,7 +10,8 @@ library(rio)
 library(ggplot2)
 ```
 
-# import data and clean dataframes
+# data
+## import and clean dataframes
 ```{r}
 # conservative-motivated
 arctic_df <- import(here("data", "arctic-ice-data.csv"))
@@ -47,7 +48,7 @@ icesheets_df$year <- as.character(icesheets_df$year) %>%
 sealevel_df <- import(here("data", "sea-level-data.txt"))
 ```
 
-# create plot dataframes
+## create plot dataframes
 ```{r}
 arcticplot_df <- arctic_df %>% 
   select(year, area)
@@ -66,12 +67,15 @@ icesheetsplot_df <- icesheets_df %>%
 ```
 
 # plots
-## arctic ice sheets plot
+## political plots
+### arctic plot
 ```{r}
-arcticplot_df %>% 
+arcticplot <- arcticplot_df %>% 
   ggplot(aes(year, area)) +
   geom_point() +
-  geom_line() +
+  geom_line() 
+
+arcticplot + 
   labs(x = NULL,
        y = "Amount of Ice (million square kilometers)",
        title = "Average Monthly Amount of Arctic Sea Ice \n 1979-2013") +
@@ -87,9 +91,9 @@ arcticplot_df %>%
   
 ```
 
-## temp plot
+### temp plot
 ```{r}
-tempplot_df %>% 
+tempplot <- tempplot_df %>% 
   filter(Year >= 1980) %>% 
   ggplot(aes(Year, No_Smoothing)) +
   geom_point() +
@@ -97,9 +101,9 @@ tempplot_df %>%
   
 ```
 
-## ozone plot
+### ozone plot
 ```{r}
-ozoneplot_df %>% 
+ozoneplot <- ozoneplot_df %>% 
   filter(year != 2021) %>% 
   ggplot(aes(year, area)) +
   geom_point() +
@@ -107,19 +111,25 @@ ozoneplot_df %>%
   
 ```
 
-## CO2 plot --- issue here bc i need to avg the monthly avgs to make an annual avg
+### co2 plot --- issue here bc i need to avg the monthly avgs to make an annual avg
 ```{r}
-co2plot_df %>% 
+co2plot <- co2plot_df %>% 
   ggplot(aes(year, monthly_avg)) +
   geom_point() +
   geom_line()
 ```
 
-## ice sheets 
+### ice sheets -- also issue bc need to avg
 ```{r}
-arcticplot_df %>% 
-  ggplot(aes(year, area)) +
+icesheetsplot <- icesheetsplot_df %>% 
+  ggplot(aes(year, mass)) +
   geom_point() +
   geom_line()
 ```
 
+## non-political plots
+### arctic jittered plot
+### temp jittered plot
+### ozone jittered plot
+### co2 jittered plot
+### ice sheets jittered plot
