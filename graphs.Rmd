@@ -10,13 +10,63 @@ library(rio)
 library(ggplot2)
 ```
 
-# data
+# import data and clean dataframes
 ```{r}
+# conservative-motivated
 arctic_df <- import(here("data", "arctic-ice-data.csv"))
 temp_df <- import(here("data", "global-temp-data.txt"))
-ozone_df <- import(here("data", "ozone-data.txt"))
-co2_data <- import(here("data", "carbon-dioxide-data.txt"))
+
+# liberal-motivated
+ozone_df <- import(here("data", "ozone-data.txt")) %>% 
+  janitor::clean_names() %>% 
+  rename(
+    "year" = "v1",
+    "area" = "value"
+  )
+
+# boundary conditions
+co2_df <- import(here("data", "carbon-dioxide-data.txt"))
+co2_df <- co2_df[2:nrow(co2_df),] %>% 
+  rename(
+    "year" = "V1",
+    "monthly_avg" = "V4",
+    "deseasonalized" = "V5"
+  )
+
+icesheets_df <- import(here("data", "ice-sheets-data.txt")) %>% 
+  rename(
+    "year" = "V1",
+    "mass" = "V2",
+    "uncertainty" = "V3"
+  )
+## fix year value
+icesheets_df$year <- as.character(icesheets_df$year) %>% 
+  strtrim(., 4)
+
+# other
 sealevel_df <- import(here("data", "sea-level-data.txt"))
-icesheets_df <- import(here("data", "ice-sheets-data.txt"))
+```
+
+# create plot dataframes
+```{r}
+arcticplot_df <- arctic_df %>% 
+  select(year, area)
+
+tempplot_df <- temp_df %>% 
+  select(Year, No_Smoothing)
+
+ozoneplot_df <- ozone_df %>% 
+  select(year, area)
+
+co2plot_df <- co2_df %>% 
+  select(year, monthly_avg, deseasonalized)
+
+icesheetsplot_df <- icesheets_df %>% 
+  select(year, mass)
+```
+
+# plots
+```{r}
+
 ```
 
