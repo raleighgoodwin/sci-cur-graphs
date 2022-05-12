@@ -66,6 +66,14 @@ icesheetsplot_df <- icesheets_df %>%
   select(year, mass)
 ```
 
+## create jittered plot dataframes
+```{r}
+# j725_arcticplot_df <- arcticplot_df %>% 
+#  mutate(area = jitter(area, amount = .725))
+
+jitteredilikeit <- j725_arcticplot_df
+```
+
 # plots
 ## political plots
 ### arctic plot
@@ -73,7 +81,7 @@ icesheetsplot_df <- icesheets_df %>%
 arcticplot <- arcticplot_df %>% 
   ggplot(aes(year, area)) +
   geom_point() +
-  geom_line() 
+  geom_line()
 
 arcticplot + 
   labs(x = NULL,
@@ -129,7 +137,35 @@ icesheetsplot <- icesheetsplot_df %>%
 
 ## non-political plots
 ### arctic jittered plot
+```{r}
+j725_arcticplot_df %>% 
+  ggplot(aes(year, area)) +
+  geom_point() +
+  geom_line()
+
+arcticplot_df %>% 
+  ggplot(aes(year, area)) +
+  geom_point() +
+  geom_line()
+```
+
 ### temp jittered plot
+```{r}
+
+```
+
 ### ozone jittered plot
+```{r}
+
+```
+
 ### co2 jittered plot
+```{r}
+
+```
+
 ### ice sheets jittered plot
+```{r}
+
+```
+
