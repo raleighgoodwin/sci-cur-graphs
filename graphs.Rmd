@@ -116,6 +116,12 @@ ozoneplot <- ozoneplot_df %>%
   ggplot(aes(year, area)) +
   geom_point() +
   geom_line()
+
+ozoneplot <- ozoneplot_df %>% 
+  filter(year >=2000 & year != 2021) %>% 
+  ggplot(aes(year, area)) +
+  geom_point() +
+  geom_line()
   
 ```
 
