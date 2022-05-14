@@ -43,7 +43,7 @@ icesheets_df <- import(here("data", "ice-sheets-data.txt")) %>%
 ## fix year value
 icesheets_df$year <- as.character(icesheets_df$year) %>% 
   strtrim(., 4)
-
+ 
 # other
 sealevel_df <- import(here("data", "sea-level-data.txt"))
 ```
