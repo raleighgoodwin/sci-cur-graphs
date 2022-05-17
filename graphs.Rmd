@@ -72,7 +72,7 @@ icesheetsplot_df <- icesheets_df %>%
 icesheetsplot_df <- icesheetsplot_df %>%
   group_by(year) %>%
   summarise(mass = mean(mass)) %>% 
-  ungroup()
+  mutate(year = as.numeric(year))
 ```
 
 ## create jittered plot dataframes
@@ -137,6 +137,7 @@ ozoneplot <- ozoneplot_df %>%
 ### co2 plot
 ```{r}
 co2plot <- co2plot_df %>% 
+  filter(year >= 1980) %>% 
   ggplot(aes(year, area)) +
   geom_point() +
   geom_line()
