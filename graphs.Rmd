@@ -88,6 +88,7 @@ jitteredilikeit <- j725_arcticplot_df
 ### arctic plot
 ```{r}
 arcticplot <- arcticplot_df %>% 
+  filter(year >= 1980) %>% 
   ggplot(aes(year, area)) +
   geom_point() +
   geom_line()
@@ -95,7 +96,8 @@ arcticplot <- arcticplot_df %>%
 arcticplot + 
   labs(x = NULL,
        y = "Amount of Ice (million square kilometers)",
-       title = "Average Monthly Amount of Arctic Sea Ice \n 1979-2013") +
+       title = "Average Monthly Amount of Arctic Sea Ice \n1979-2021") +
+  theme_bw() +
   theme(
     axis.text.x = element_text(face = "bold",
                                color = "black",
@@ -104,8 +106,9 @@ arcticplot +
     axis.text.y = element_text(face = "bold",
                                color = "black",
                                size = 10)
-  )
-  
+    ) +
+  scale_x_continuous(breaks = seq(1980, 2021, by = 5)) +
+  scale_y_continuous(breaks = seq(1, 7, by = .5))
 ```
 
 ### temp plot
@@ -120,11 +123,11 @@ tempplot <- tempplot_df %>%
 
 ### ozone plot
 ```{r}
-ozoneplot <- ozoneplot_df %>% 
-  filter(year != 2021) %>% 
-  ggplot(aes(year, area)) +
-  geom_point() +
-  geom_line()
+# ozoneplot <- ozoneplot_df %>% 
+#   filter(year != 2021) %>% 
+#   ggplot(aes(year, area)) +
+#   geom_point() +
+#   geom_line()
 
 ozoneplot <- ozoneplot_df %>% 
   filter(year >=2000 & year != 2021) %>% 
@@ -143,7 +146,7 @@ co2plot <- co2plot_df %>%
   geom_line()
 ```
 
-### ice sheets -- also issue bc need to avg
+### ice sheets
 ```{r}
 icesheetsplot <- icesheetsplot_df %>% 
   ggplot(aes(year, mass)) +
