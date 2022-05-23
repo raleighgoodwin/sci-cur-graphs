@@ -41,12 +41,12 @@ icesheets_df <- import(here("data", "ice-sheets-data.txt")) %>%
     "mass" = "V2",
     "uncertainty" = "V3"
   )
-## fix year value
-icesheets_df$year <- as.character(icesheets_df$year) %>% 
+
+icesheets_df$year <- as.character(icesheets_df$year) %>% # fix year value
   strtrim(., 4)
  
 # other
-sealevel_df <- import(here("data", "sea-level-data.txt"))
+# sealevel_df <- import(here("data", "sea-level-data.txt"))
 ```
 
 ## create plot dataframes
@@ -62,20 +62,203 @@ ozoneplot_df <- ozone_df %>%
 
 co2plot_df <- co2_df %>% 
   select(year, monthly_avg, deseasonalized)
-# annual average
+
 co2plot_df <- co2plot_df %>%
-  group_by(year) %>%
+  group_by(year) %>% # annual average
   summarise(area = mean(monthly_avg))
 
 icesheetsplot_df <- icesheets_df %>% 
   select(year, mass)
-# annual average
+
 icesheetsplot_df <- icesheetsplot_df %>%
   group_by(year) %>%
-  summarise(mass = mean(mass)) %>% 
+  summarise(mass = mean(mass)) %>% # annual average
   mutate(year = as.numeric(year))
 ```
 
+# plots
+## political plots
+### arctic plot
+```{r}
+arcticplot_df$title <- "Average Monthly Amount of Arctic Sea Ice\n1979-2021"
+
+arcticplot <- arcticplot_df %>% 
+  filter(year >= 1980) %>% 
+  ggplot(aes(year, area)) +
+  geom_point(size = 2) +
+  geom_line(size = .7)
+
+arcticplot <- arcticplot + 
+  labs(x = NULL,
+       y = "Amount of Ice (million square kilometers)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
+  scale_y_continuous(breaks = seq(1, 7, by = .5)) # fix range
+
+```
+
+
+### temp plot
+```{r}
+tempplot_df$title <- "Global Land-Ocean Temperature Index\n1980-2021"
+
+tempplot <- tempplot_df %>% 
+  filter(Year >= 1980) %>% 
+  ggplot(aes(Year, No_Smoothing)) +
+  geom_point(size = 2) +
+  geom_line(size = .7)
+  
+tempplot <- tempplot + 
+  labs(x = NULL,
+       y = "Temperature Anomaly (C)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
+  scale_y_continuous(breaks = seq(-1, 1.5, by = .1)) # fix range
+```
+
+### ozone plot
+```{r}
+ozoneplot_df$title <- "Average Annual Ozone Hole Area\n2000-2020"
+
+ozoneplot <- ozoneplot_df %>% 
+  filter(year >=2000 & year != 2021) %>% 
+  ggplot(aes(year, area)) +
+  geom_point(size = 2) +
+  geom_line(size = .7)
+  
+ozoneplot <- ozoneplot + 
+  labs(x = NULL,
+       y = "Hole Area (million square kilometers)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+ scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
+  scale_y_continuous(breaks = seq(10, 40, by = 1)) # fix range
+```
+
+### co2 plot
+```{r}
+co2plot_df$title <- "Average Atmospheric CO^2 Levels\n1980-2021" # fix exponent
+
+co2plot <- co2plot_df %>% 
+  filter(year >= 1980) %>% 
+  ggplot(aes(year, area)) +
+  geom_point(size = 2) +
+  geom_line(size = .7)
+  
+co2plot <- co2plot + 
+  labs(x = NULL,
+       y = "CO^2 (parts per million)") + # fix exponent
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
+  scale_y_continuous(breaks = seq(300, 450, by = 10)) # fix range
+```
+
+### ice sheets
+```{r}
+icesheetsplot_df$title <- "Average Annual Antarctica Mass\n2002-2022"
+
+icesheetsplot <- icesheetsplot_df %>% 
+  ggplot(aes(year, mass)) +
+  geom_point(size = 2) +
+  geom_line(size = .7)
+  
+icesheetsplot <- icesheetsplot + 
+  labs(x = NULL,
+       y = "Antarctica Mass (Gt)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(2002, 2022, by = 2)) +
+  scale_y_continuous(breaks = seq(0, -4000, by = -250)) # fix range
+```
+# jittered plots
 ## create jittered plot dataframes
 ```{r}
 # j725_arcticplot_df <- arcticplot_df %>% 
@@ -84,87 +267,7 @@ icesheetsplot_df <- icesheetsplot_df %>%
 jitteredilikeit <- j725_arcticplot_df
 ```
 
-# plots
-## political plots
-### arctic plot
-```{r}
-arcticplot_df$title <- "Average Monthly Amount of Arctic Sea Ice \n1979-2021"
 
-arcticplot <- arcticplot_df %>% 
-  filter(year >= 1980) %>% 
-  ggplot(aes(year, area)) +
-  geom_point(size = 2) +
-  geom_line(size = .7)
-
-arcticplot + 
-  labs(x = NULL,
-       y = "Amount of Ice (million square kilometers)") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 10,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 10),
-    axis.title.y = element_text(face = "bold"),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 15,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
-  scale_y_continuous(breaks = seq(1, 7, by = .5))
-
-```
-
-
-### temp plot
-```{r}
-tempplot <- tempplot_df %>% 
-  filter(Year >= 1980) %>% 
-  ggplot(aes(Year, No_Smoothing)) +
-  geom_point() +
-  geom_line()
-  
-```
-
-### ozone plot
-```{r}
-# ozoneplot <- ozoneplot_df %>% 
-#   filter(year != 2021) %>% 
-#   ggplot(aes(year, area)) +
-#   geom_point() +
-#   geom_line()
-
-ozoneplot <- ozoneplot_df %>% 
-  filter(year >=2000 & year != 2021) %>% 
-  ggplot(aes(year, area)) +
-  geom_point() +
-  geom_line()
-  
-```
-
-### co2 plot
-```{r}
-co2plot <- co2plot_df %>% 
-  filter(year >= 1980) %>% 
-  ggplot(aes(year, area)) +
-  geom_point() +
-  geom_line()
-```
-
-### ice sheets
-```{r}
-icesheetsplot <- icesheetsplot_df %>% 
-  ggplot(aes(year, mass)) +
-  geom_point() +
-  geom_line()
-```
 
 ## non-political plots
 ### arctic jittered plot
