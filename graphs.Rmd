@@ -82,7 +82,7 @@ icesheetsplot_df <- icesheetsplot_df %>%
 ## political plots
 ### arctic plot
 ```{r}
-arcticplot_df$title <- "Average Monthly Amount of Arctic Sea Ice\n1979-2021"
+arcticplot_df$title <- "Average Monthly Amount of Arctic Sea Ice\n1980-2021"
 
 arcticplot <- arcticplot_df %>% 
   filter(year >= 1980) %>% 
@@ -279,7 +279,7 @@ icesheetsplot
 ### arctic jittered plot
 ```{r}
 j_arcticplot_df <- arctic_df %>% 
-  mutate(area = area+105,
+  mutate(area = area+55,
          title = "Average Something\n1979-2021")
 
 j_arcticplot <- j_arcticplot_df %>% 
@@ -311,16 +311,17 @@ j_arcticplot <- j_arcticplot +
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
   scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
-  scale_y_continuous(limits = (c(107, 111)), breaks = seq(107, 111, by = .5))
+  scale_y_continuous(limits = (c(53, 61)), breaks = seq(53, 61, by = .5))
 
 arcticplot
 j_arcticplot
 ```
+
 ### temp jittered plot
 ```{r}
 j_tempplot_df <- tempplot_df %>% 
-  mutate(No_Smoothing = No_Smoothing-1.75,
-         title = "Something\nsometime")
+  mutate(No_Smoothing = No_Smoothing+17,
+         title = "Average Area of Sand on Earth\n1980-2021")
 
 j_tempplot <- j_tempplot_df %>% 
   filter(Year >= 1980) %>% 
@@ -330,7 +331,7 @@ j_tempplot <- j_tempplot_df %>%
   
 j_tempplot <- j_tempplot + 
   labs(x = NULL,
-       y = "something Anomaly (x)") +
+       y = "Sandy Land Area (million square miles)") +
   facet_grid(. ~ title) +
   theme_linedraw() +
   theme(
@@ -351,7 +352,7 @@ j_tempplot <- j_tempplot +
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
   scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
-  scale_y_continuous(limits = c(-2, -.5), breaks = seq(-2, -.5, by = .1))
+  scale_y_continuous(limits = c(17, 18.5), breaks = seq(17, 18.5, by = .1))
 
 tempplot
 j_tempplot
@@ -361,7 +362,7 @@ j_tempplot
 ```{r}
 j_ozoneplot_df <- ozoneplot_df %>% 
   mutate(area = area+50,
-         title = "Something\nsometime")
+         title = "Something\n2000-2020")
 
 j_ozoneplot <- j_ozoneplot_df %>% 
   filter(year >=2000 & year != 2021) %>%
