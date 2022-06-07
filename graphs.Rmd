@@ -274,48 +274,126 @@ icesheetsplot <- icesheetsplot +
 
 icesheetsplot
 ```
-# jittered plots
-## create jittered plot dataframes
-```{r}
-# j725_arcticplot_df <- arcticplot_df %>% 
-#  mutate(area = jitter(area, amount = .725))
-
-jitteredilikeit <- j725_arcticplot_df
-```
-
-
 
 ## non-political plots
 ### arctic jittered plot
 ```{r}
-j725_arcticplot_df %>% 
-  ggplot(aes(year, area)) +
-  geom_point() +
-  geom_line()
+j_arcticplot_df <- arctic_df %>% 
+  mutate(area = area+105,
+         title = "Average Something\n1979-2021")
 
-arcticplot_df %>% 
+j_arcticplot <- j_arcticplot_df %>% 
+  filter(year >= 1980) %>% 
   ggplot(aes(year, area)) +
-  geom_point() +
-  geom_line()
+  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
+
+j_arcticplot <- j_arcticplot + 
+  labs(x = NULL,
+       y = "Something (million square kilometers)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
+  scale_y_continuous(limits = (c(107, 111)), breaks = seq(107, 111, by = .5))
+
+arcticplot
+j_arcticplot
 ```
-
 ### temp jittered plot
 ```{r}
+j_tempplot_df <- tempplot_df %>% 
+  mutate(No_Smoothing = No_Smoothing-1.75,
+         title = "Something\nsometime")
 
+j_tempplot <- j_tempplot_df %>% 
+  filter(Year >= 1980) %>% 
+  ggplot(aes(Year, No_Smoothing)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = .2, seed = 404)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .2, seed = 404))
+  
+j_tempplot <- j_tempplot + 
+  labs(x = NULL,
+       y = "something Anomaly (x)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
+  scale_y_continuous(limits = c(-2, -.5), breaks = seq(-2, -.5, by = .1))
+
+tempplot
+j_tempplot
 ```
 
 ### ozone jittered plot
 ```{r}
+j_ozoneplot_df <- ozoneplot_df %>% 
+  mutate(area = area+50,
+         title = "Something\nsometime")
 
+j_ozoneplot <- j_ozoneplot_df %>% 
+  filter(year >=2000 & year != 2021) %>%
+  ggplot(aes(year, area)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = 2.5, seed = 404)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = 2.5, seed = 404))
+  
+j_ozoneplot <- j_ozoneplot + 
+  labs(x = NULL,
+       y = "something (million something)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(limits = c(2000, 2020), breaks = seq(2000, 2020, by = 1)) +
+  scale_y_continuous(limits = c(65, 90), breaks = seq(65, 90, by = 5))
+
+ozoneplot
+j_ozoneplot
 ```
-
-### co2 jittered plot
-```{r}
-
-```
-
-### ice sheets jittered plot
-```{r}
-
-```
-
