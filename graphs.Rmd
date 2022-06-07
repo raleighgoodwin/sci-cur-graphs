@@ -1,6 +1,8 @@
 ---
 title: "graphs"
 output: html_document
+editor_options: 
+  chunk_output_type: inline
 ---
 # libraries
 ```{r}
@@ -190,15 +192,10 @@ ozoneplot <- ozoneplot +
 
 ### co2 plot
 ```{r}
-# co2plot_df$title1 <- "Average Atmospheric CO"
-# co2plot_df$title2 <- "Levels\n1980-2021"
-co2plot_df$title <- as.character(expression(paste("Average Atmospheric ", CO[2], " Levels\n1980-2021")))
-
-x <- expression(paste("Average Atmospheric ", CO[2], " Levels\n1980-2021"))
-
-# co2title <- as_labeller(c(`0` = expression(paste("Average Atmospheric ", CO[2], " Levels\n1980-2021"))))
-
-# deparse(expression(paste("Average Atmospheric ", CO[2], " Levels\n1980-2021")))
+co2plot_df$title <- as.character(expression(atop(
+  paste("Average Atmospheric ", CO[2]," Levels"), 
+  "1980-2021"))) %>% 
+  as.factor()
 
 co2plot <- co2plot_df %>% 
   filter(year >= 1980) %>% 
@@ -210,7 +207,8 @@ co2plot <- co2plot_df %>%
   co2plot + 
   labs(x = NULL,
        y = expression(paste(CO[2], " (parts per million)"))) +
-  facet_grid(. ~ title) +
+  facet_grid(. ~ title, 
+             labeller = "label_parsed") +
   theme_linedraw() +
   theme(
     axis.text.x = element_text(face = "bold",
