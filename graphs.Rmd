@@ -2,7 +2,7 @@
 title: "graphs"
 output: html_document
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 # libraries
 ```{r}
@@ -113,8 +113,9 @@ arcticplot <- arcticplot +
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
   scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
-  scale_y_continuous(breaks = seq(1, 7, by = .5)) # fix range
+  scale_y_continuous(limits = (c(2, 6)), breaks = seq(2, 6, by = .5))
 
+arcticplot
 ```
 
 
@@ -151,7 +152,9 @@ tempplot <- tempplot +
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
   scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
-  scale_y_continuous(breaks = seq(-1, 1.5, by = .1)) # fix range
+  scale_y_continuous(limits = c(0, 1.5), breaks = seq(-0, 1.5, by = .1))
+
+tempplot
 ```
 
 ### ozone plot
@@ -159,7 +162,7 @@ tempplot <- tempplot +
 ozoneplot_df$title <- "Average Annual Ozone Hole Area\n2000-2020"
 
 ozoneplot <- ozoneplot_df %>% 
-  filter(year >=2000 & year != 2021) %>% 
+  filter(year >=2000 & year != 2021) %>%
   ggplot(aes(year, area)) +
   geom_point(size = 2) +
   geom_line(size = .7)
@@ -186,15 +189,18 @@ ozoneplot <- ozoneplot +
                               color = "white"),
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
- scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
-  scale_y_continuous(breaks = seq(10, 40, by = 1)) # fix range
+  scale_x_continuous(limits = c(2000, 2020), breaks = seq(2000, 2020, by = 1)) +
+  scale_y_continuous(limits = c(15, 40), breaks = seq(15, 40, by = 5))
+
+ozoneplot
 ```
 
 ### co2 plot
 ```{r}
-co2plot_df$title <- as.character(expression(atop(
+co2plot_df$title <- expression(bold(atop(
   paste("Average Atmospheric ", CO[2]," Levels"), 
-  "1980-2021"))) %>% 
+  "1980-2021"))) %>%
+  as.character() %>% 
   as.factor()
 
 co2plot <- co2plot_df %>% 
@@ -203,10 +209,9 @@ co2plot <- co2plot_df %>%
   geom_point(size = 2) +
   geom_line(size = .7)
   
-# co2plot <- 
-  co2plot + 
+co2plot <- co2plot + 
   labs(x = NULL,
-       y = expression(paste(CO[2], " (parts per million)"))) +
+       y = expression(bold(paste(CO[2], " (parts per million)")))) +
   facet_grid(. ~ title, 
              labeller = "label_parsed") +
   theme_linedraw() +
@@ -228,12 +233,14 @@ co2plot <- co2plot_df %>%
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
   scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
-  scale_y_continuous(breaks = seq(300, 450, by = 10)) # fix range
+  scale_y_continuous(limits = c(330, 430), breaks = seq(330, 430, by = 10))
+
+co2plot
 ```
 
 ### ice sheets
 ```{r}
-icesheetsplot_df$title <- "Average Annual Antarctica Mass\n2002-2022"
+icesheetsplot_df$title <- "Antarctica Mass Variation\n2002-2022"
 
 icesheetsplot <- icesheetsplot_df %>% 
   ggplot(aes(year, mass)) +
@@ -263,7 +270,9 @@ icesheetsplot <- icesheetsplot +
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
   scale_x_continuous(breaks = seq(2002, 2022, by = 2)) +
-  scale_y_continuous(breaks = seq(0, -4000, by = -250)) # fix range
+  scale_y_continuous(limits = c(-3000, 0), breaks = seq(-3000, 0, by = 250))
+
+icesheetsplot
 ```
 # jittered plots
 ## create jittered plot dataframes
