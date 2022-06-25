@@ -11,6 +11,7 @@ library(here)
 library(rio)
 library(ggplot2)
 library(Hmisc)
+library(lubridate)
 ```
 
 # data
@@ -49,6 +50,11 @@ icesheets_df$year <- as.character(icesheets_df$year) %>% # fix year value
  
 # practice/attn check
 children_df <- import(here("data", "children-data.xlsx"))
+
+# non-political real
+quake_df <- import(here("data", "quake-data.csv"))
+
+meteor_df <- import(here("data", "meteorite-data.csv"))
 ```
 
 ## create plot dataframes
@@ -67,15 +73,30 @@ co2plot_df <- co2_df %>%
 
 co2plot_df <- co2plot_df %>%
   group_by(year) %>% # annual average
-  summarise(area = mean(monthly_avg))
+  summarise(area = mean(monthly_avg, na.rm = T))
 
 icesheetsplot_df <- icesheets_df %>% 
   select(year, mass)
 
 icesheetsplot_df <- icesheetsplot_df %>%
   group_by(year) %>%
-  summarise(mass = mean(mass)) %>% # annual average
+  summarise(mass = mean(mass, na.rm = T)) %>% # annual average
   mutate(year = as.numeric(year))
+
+quakeplot_df <- quake_df %>% 
+  mutate(year = as.numeric(format(as.Date(quake_df$Date, format = "%m/%d/%Y"), "%Y"))) %>% 
+  select(year, Magnitude) %>% 
+  group_by(year) %>% 
+  summarise(mag = mean(Magnitude, na.rm = T),
+            n = n())
+
+meteorplot_df <- meteor_df %>% 
+  filter(year >=1950 & year < 2016) %>% 
+  select(id, year, mass) %>% 
+  group_by(year) %>% 
+  summarise(mass = mean(mass, na.rm = T),
+            n = n(),
+            kmass = mass/1000)
 ```
 
 # plots
@@ -117,7 +138,6 @@ arcticplot <- arcticplot +
 
 arcticplot
 ```
-
 
 ### temp plot
 ```{r}
@@ -276,7 +296,150 @@ icesheetsplot
 ```
 
 ## non-political plots
-### arctic jittered plot
+### real
+#### earthquake
+```{r}
+quakeplot_df <- quakeplot_df %>% 
+  mutate(title = "Average Earthquake Magnitude\n19xx-202x")
+
+quakeplot <- quakeplot_df %>% 
+  filter(year >= 1980) %>% 
+  ggplot(aes(year, mag)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
+
+quakeplot <- quakeplot + 
+  labs(x = NULL,
+       y = "Something (million square kilometers)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1980, 2016, by = 2)) +
+  scale_y_continuous(limits = (c(0, 15)), breaks = seq(0, 15, by = 1))
+```
+
+```{r}
+quakeplot2 <- quakeplot_df %>% 
+  filter(year >= 1980) %>% 
+  ggplot(aes(year, n)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
+
+quakeplot2 <- quakeplot2 + 
+  labs(x = NULL,
+       y = "Something (million square kilometers)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1980, 2016, by = 2)) +
+  scale_y_continuous(limits = (c(0, 750)), breaks = seq(0, 750, by = 50))
+```
+
+#### meteor
+```{r}
+meteorplot_df <- meteorplot_df %>% 
+  mutate(title = "Average Landed Meteor Mass\n19xx-202x")
+
+meteorplot <- meteorplot_df %>% 
+  # filter(year >= 1980) %>% 
+  ggplot(aes(year, kmass)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
+
+meteorplot <- meteorplot + 
+  labs(x = NULL,
+       y = "Something (million square kilometers)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1950, 2013, by = 2)) +
+  scale_y_continuous(limits = (c(0, 200)), breaks = seq(0, 200, by = 10))
+```
+
+```{r}
+meteorplot2 <- meteorplot_df %>% 
+  filter(year >= 1980) %>%
+  ggplot(aes(year, n)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
+
+meteorplot2 <- meteorplot2 + 
+  labs(x = NULL,
+       y = "Something (million square kilometers)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1950, 2013, by = 2)) +
+  scale_y_continuous(limits = (c(0, 4000)), breaks = seq(0, 4000, by = 500))
+```
+
+### jittered
+
+#### arctic jittered plot
 ```{r}
 j_arcticplot_df <- arctic_df %>% 
   mutate(area = area+55,
@@ -317,7 +480,7 @@ arcticplot
 j_arcticplot
 ```
 
-### temp jittered plot
+#### temp jittered plot
 ```{r}
 j_tempplot_df <- tempplot_df %>% 
   mutate(No_Smoothing = No_Smoothing+.5,
@@ -358,7 +521,7 @@ tempplot
 j_tempplot
 ```
 
-### ozone jittered plot
+#### ozone jittered plot
 ```{r}
 j_ozoneplot_df <- ozoneplot_df %>% 
   mutate(area = area-15,
@@ -399,7 +562,7 @@ ozoneplot
 j_ozoneplot
 ```
 
-## practice plot
+### practice plot
 ```{r}
 png("practice-plot.png")
 
