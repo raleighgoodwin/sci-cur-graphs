@@ -1,0 +1,39 @@
+---
+title: "nasa-data-results"
+output: html_document
+---
+
+# libraries
+```{r}
+library(tidyverse)
+library(here)
+library(rio)
+library(ggplot2)
+library(Hmisc)
+library(lubridate)
+```
+
+# data
+## import and clean dataframes
+```{r}
+# conservative-motivated
+nasadata <- import(here("data", "nasa-data-results.csv")) %>% 
+  janitor::clean_names() %>% 
+  mutate(start = as.Date(start_time),
+         end = as.Date(end_time),
+         start_year = year(start),
+         end_year = year(end),
+         duration = as.numeric(end_year) - as.numeric(start_year))
+
+nasadata_s <- nasadata %>% 
+  filter(start_year >= 1900 & start_year <= 2000) %>%
+  filter(duration >= 20 | is.na(duration) == T) %>% 
+  filter(end_year >= 2020 | is.na(end_year) == T) %>% 
+  select(short_name, entry_title, start_year, end_year, duration)
+
+export(nasadata_s, "nasa-data-search-s.csv")
+
+ntldata <- import(here("data", "ntl-zoo-data.csv"))
+
+getwd()
+```
