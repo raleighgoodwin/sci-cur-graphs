@@ -58,10 +58,17 @@ icesheets_df$year <- as.character(icesheets_df$year) %>% # fix year value
 children_df <- import(here("data", "children-data.xlsx"))
 
 # non-political real
-quake_df <- import(here("data", "quake-data.csv"))
-
 ntl_df <- import(here("data", "ntl-data.csv")) %>% 
   janitor::clean_names()
+
+quake1_df <- import(here("data", "quake-data.csv"))
+quake2_df <- import(here("data", "quakehack-data.csv"))
+
+# quake2_df %>%
+#   select(mag) %>%
+#   psych::describe()
+# quake18_df <- import(here("data", "quake2018-data.csv"))
+# quake20_df <- import(here("data", "quake2020-data.csv"))
 ```
 
 ## create plot dataframes
@@ -93,12 +100,33 @@ icesheetsplot_df <- icesheetsplot_df %>%
   summarise(mass = mean(mass, na.rm = T)) %>% # annual average
   mutate(year = as.numeric(year))
 
-quakeplot_df <- quake_df %>% 
-  mutate(year = as.numeric(format(as.Date(quake_df$Date, format = "%m/%d/%Y"), "%Y"))) %>% 
+quakeplot1_df <- quake1_df %>% 
+  mutate(year = as.numeric(format(as.Date(quake1_df$Date, format = "%m/%d/%Y"), "%Y"))) %>% 
   select(year, Magnitude) %>% 
   group_by(year) %>% 
   summarise(mag = mean(Magnitude, na.rm = T),
+            n = n()) %>% 
+  filter(is.na(year) == F)
+
+quakeplot2_df <- quake2_df %>% 
+  mutate(year = as.numeric(format(as.Date(quake2_df$time, format = "%Y/%m/%d"), "%Y"))) %>% 
+  select(year, mag) %>% 
+  group_by(year) %>% 
+  summarise(mag = mean(mag, na.rm = T),
             n = n())
+
+# quakeplot2_df <- quake2_df %>% 
+#   mutate(timestr = as.character(time),
+#          year = as.numeric(stringr::str_trunc(quake2_df$timestr, 4))) %>% 
+#   select(year, Magnitude) %>% 
+#   group_by(year) %>% 
+#   summarise(mag = mean(Magnitude, na.rm = T),
+#             n = n())
+# 
+# quake2_df %>% 
+#   select(time) %>% 
+#   mutate(time = as.character(time)) %>% 
+#   mutate(year = stringr::str_trunc(., 4))
 
 diathoplot_df_n <- ntl_df %>% 
   filter(species_name == "DIACYCLOPS THOMASI") %>% 
