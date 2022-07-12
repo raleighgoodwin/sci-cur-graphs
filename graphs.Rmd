@@ -115,18 +115,7 @@ quakeplot2_df <- quake2_df %>%
   summarise(mag = mean(mag, na.rm = T),
             n = n())
 
-# quakeplot2_df <- quake2_df %>% 
-#   mutate(timestr = as.character(time),
-#          year = as.numeric(stringr::str_trunc(quake2_df$timestr, 4))) %>% 
-#   select(year, Magnitude) %>% 
-#   group_by(year) %>% 
-#   summarise(mag = mean(Magnitude, na.rm = T),
-#             n = n())
-# 
-# quake2_df %>% 
-#   select(time) %>% 
-#   mutate(time = as.character(time)) %>% 
-#   mutate(year = stringr::str_trunc(., 4))
+quakeplot_df <- rbind(quakeplot1_df, quakeplot2_df)
 
 diathoplot_df_n <- ntl_df %>% 
   filter(species_name == "DIACYCLOPS THOMASI") %>% 
@@ -399,11 +388,10 @@ summary(icesheets_model)
 ```
 
 ## non-political plots
-### earthquake
-#### quake mag
+### quake
 ```{r}
 quakeplot_df1 <- quakeplot_df %>% 
-  mutate(title = "Average Earthquake Magnitude\n1980-2016")
+  mutate(title = "Average Earthquake Magnitude\n1980-2020")
 
 quakeplot <- quakeplot_df1 %>% 
   filter(year >= 1980) %>% 
@@ -433,7 +421,7 @@ quakeplot <- quakeplot +
                               color = "white"),
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1980, 2016, by = 2)) +
+  scale_x_continuous(breaks = seq(1980, 2020, by = 2)) +
   scale_y_continuous(limits = (c(0, 9)), breaks = seq(0, 9, by = .5))
 
 quakeplot
