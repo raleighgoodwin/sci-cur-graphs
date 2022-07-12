@@ -19,6 +19,7 @@ library(lubridate)
 ```{r}
 # conservative-motivated
 arctic_df <- import(here("data", "arctic-ice-data.csv"))
+
 temp_df <- import(here("data", "global-temp-data.txt"))
 
 # liberal-motivated
@@ -29,7 +30,12 @@ ozone_df <- import(here("data", "ozone-data.txt")) %>%
     "area" = "value"
   )
 
-# boundary conditions
+airqual_df <- import(here("data", "airqual-data-2.xlsx")) %>% 
+  pivot_longer(cols = as.numeric(1:42),
+               names_to = "year",
+               values_to = "aqi")
+
+# political steady
 co2_df <- import(here("data", "carbon-dioxide-data.txt"))
 co2_df <- co2_df[2:nrow(co2_df),] %>% 
   rename(
@@ -48,26 +54,14 @@ icesheets_df <- import(here("data", "ice-sheets-data.txt")) %>%
 icesheets_df$year <- as.character(icesheets_df$year) %>% # fix year value
   strtrim(., 4)
  
-# practice/attn check
+# practice
 children_df <- import(here("data", "children-data.xlsx"))
 
 # non-political real
 quake_df <- import(here("data", "quake-data.csv"))
 
-meteor_df <- import(here("data", "meteorite-data.csv"))
-
 ntl_df <- import(here("data", "ntl-data.csv")) %>% 
   janitor::clean_names()
-
-waterec_df <- import(here("data", "groundwater-data.csv")) %>% 
-  mutate(start_year = as.numeric(format(as.Date(waterec_df$Start_date, format = "%m/%d/%Y"), "%Y")),
-         end_year = as.numeric(format(as.Date(waterec_df$End_date, format = "%m/%d/%Y"), "%Y")),
-         same_year = if_else(start_year == end_year, 1, 0)) %>% 
-  filter(same_year == 1) %>% 
-  mutate(year = if_else(end_year >= 80, 
-                        paste("19", end_year, sep=""), if_else(end_year < 10, paste("200", end_year, sep=""), 
-                                                       paste("20", end_year, sep=""))),
-         year = as.numeric(year)) 
 ```
 
 ## create plot dataframes
@@ -80,6 +74,9 @@ tempplot_df <- temp_df %>%
 
 ozoneplot_df <- ozone_df %>% 
   select(year, area)
+
+airqualplot_df <- airqual_df %>% 
+  mutate(yr = as.numeric(year))
 
 co2plot_df <- co2_df %>% 
   select(year, monthly_avg, deseasonalized)
@@ -103,28 +100,6 @@ quakeplot_df <- quake_df %>%
   summarise(mag = mean(Magnitude, na.rm = T),
             n = n())
 
-meteorplot_df <- meteor_df %>% 
-  filter(year >=1950 & year < 2016) %>% 
-  select(id, year, mass) %>% 
-  group_by(year) %>% 
-  summarise(mass = mean(mass, na.rm = T),
-            n = n(),
-            kmass = mass/1000)
-
-diathoplot_df <- ntl_df %>% 
-  filter(species_name == "DIACYCLOPS THOMASI") %>% 
-  select(year4, density) %>% 
-  group_by(year4) %>% 
-  summarise(dens = mean(density, na.rm = T))
-
-# diathoplot_df_n <- ntl_df %>% 
-#   filter(species_name == "DIACYCLOPS THOMASI") %>% 
-#   select(year4, density) %>% 
-#   group_by(year4) %>% 
-#   mutate(z = scale(density)) %>% 
-#   filter(z < 2) %>% 
-#   summarise(dens = mean(density, na.rm = T))
-
 diathoplot_df_n <- ntl_df %>% 
   filter(species_name == "DIACYCLOPS THOMASI") %>% 
   select(year4, density) %>%
@@ -133,27 +108,6 @@ diathoplot_df_n <- ntl_df %>%
   group_by(year4) %>% 
   summarise(dens = mean(density_n, na.rm = T))
 
-ntl_df %>% 
-  filter(year4 == 2003) %>% 
-  select(density) %>% 
-  psych::describe()
-
-ntl_df %>% 
-  filter(year4 == 2003) %>% 
-  select(density) %>% 
-  hist()
-
-waterecplot_df <- waterec_df %>% 
-  select(year, mean) %>% 
-  group_by(year) %>% 
-  summarise(mean = mean(mean, na.rm = T))
-
-watermed <- waterec_df %>% 
-  select(year, mean) %>% 
-  group_by(year) %>% 
-  mutate(z = scale(mean)) %>% 
-  filter(z < 3) %>% 
-  summarise(mean = mean(mean, na.rm = T))
 ```
 
 # plots
@@ -234,7 +188,7 @@ tempplot <- tempplot +
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
   scale_x_continuous(breaks = seq(1981, 2021, by = 2)) +
-  scale_y_continuous(limits = c(0, 1.5), breaks = seq(-0, 1.5, by = .1))
+  scale_y_continuous(limits = c(0, 1.2), breaks = seq(0, 1.2, by = .1))
 
 tempplot
 ```
@@ -277,7 +231,7 @@ ozoneplot <- ozoneplot +
     axis.ticks = element_line(color = "black"),
     panel.grid.major = element_line(color = "black", size = .3)) +
   scale_x_continuous(limits = c(2000, 2020), breaks = seq(2000, 2020, by = 1)) +
-  scale_y_continuous(limits = c(15, 40), breaks = seq(15, 40, by = 5))
+  scale_y_continuous(limits = c(10, 35), breaks = seq(10, 35, by = 5))
 
 ozoneplot
 ```
@@ -285,6 +239,45 @@ ozoneplot
 ```{r}
 ozone_model <- lm(data = ozoneplot_df, formula = area ~ year)
 summary(ozone_model)
+```
+
+### aqi plot
+```{r}
+airqualplot_df <- airqualplot_df %>% 
+  mutate(title = "Average Air Pollution Level\n1981-2021")
+
+airqualplot <- airqualplot_df %>% 
+  filter(yr > 1980) %>% 
+  ggplot(aes(yr, aqi)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
+
+airqualplot <- airqualplot + 
+  labs(x = NULL,
+       y = "Air Pollution Level (AQI)") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1981, 2021, by = 2)) +
+  scale_y_continuous(limits = (c(35, 60)), breaks = seq(35, 60, by = 5))
+
+airqualplot
 ```
 
 ### co2 plot
@@ -378,10 +371,99 @@ summary(icesheets_model)
 ```
 
 ## non-political plots
-### practice plot
+### earthquake
+#### quake mag
 ```{r}
-png("practice-plot.png")
+quakeplot_df1 <- quakeplot_df %>% 
+  mutate(title = "Average Earthquake Magnitude\n1980-2016")
 
+quakeplot <- quakeplot_df1 %>% 
+  filter(year >= 1980) %>% 
+  ggplot(aes(year, mag)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
+
+quakeplot <- quakeplot + 
+  labs(x = NULL,
+       y = "Richter Magnitude Rating") +
+  facet_grid(. ~ title) +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1980, 2016, by = 2)) +
+  scale_y_continuous(limits = (c(0, 9)), breaks = seq(0, 9, by = .5))
+
+quakeplot
+```
+
+```{r}
+quake_model <- lm(data = quakeplot_df, formula = mag ~ year)
+summary(quake_model)
+```
+
+### diacyclops thomasi (no outlier)
+```{r}
+diatho_model <- lm(data = diathoplot_df, formula = dens ~ year4)
+summary(diatho_model)
+```
+
+```{r}
+diathoplot_df_n$title <- expression(bold(atop(paste("Average ", italic("Diacyclops thomasi"), " Population Density"), "1990-2020"))) %>%
+  as.character() %>% 
+  as.factor()
+
+diathoplot_n <- diathoplot_df_n %>% 
+  filter(year4 >= 1990) %>%
+  ggplot(aes(year4, dens)) +
+  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
+  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
+
+diathoplot_n <- diathoplot_n + 
+  labs(x = NULL,
+       y = "Organisms per Liter of Water") +
+  facet_grid(. ~ title,
+             labeller = "label_parsed") +
+  theme_linedraw() +
+  theme(
+    axis.text.x = element_text(face = "bold",
+                               color = "black",
+                               size = 11,
+                               angle = 45,
+                               vjust = .8),
+    axis.text.y = element_text(face = "bold",
+                               color = "black",
+                               size = 11),
+    axis.title.y = element_text(face = "bold",
+                                size = 11),
+    strip.background = element_rect(fill = "black"),
+    strip.text = element_text(size = 16,
+                              face = "bold",
+                              color = "white"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major = element_line(color = "black", size = .3)) +
+  scale_x_continuous(breaks = seq(1990, 2020, by = 2)) +
+  scale_y_continuous(limits = (c(3, 20)), breaks = seq(3, 20, by = 1))
+
+diathoplot_n
+```
+
+## practice plot
+```{r}
 practice_df <- children_df %>% 
   mutate(title = "Average Number of Children per US Family\n1970-2020",
          year = as.numeric(year))
@@ -418,404 +500,5 @@ pracplot <- pracplot +
   scale_y_continuous(limits = c(0, 3), breaks = seq(0, 3, by = .5))
 
 pracplot
-
-dev.off()
-```
-
-### real
-#### earthquake
-##### quake mag
-```{r}
-quakeplot_df1 <- quakeplot_df %>% 
-  mutate(title = "Average Earthquake Magnitude\n1980-2016")
-
-quakeplot <- quakeplot_df1 %>% 
-  filter(year >= 1980) %>% 
-  ggplot(aes(year, mag)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
-
-quakeplot <- quakeplot + 
-  labs(x = NULL,
-       y = "Richter Magnitude Rating") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1980, 2016, by = 2)) +
-  scale_y_continuous(limits = (c(0, 9)), breaks = seq(0, 9, by = .5))
-```
-
-```{r}
-quake_model <- lm(data = quakeplot_df, formula = mag ~ year)
-summary(quake_model)
-```
-
-##### quake number
-```{r}
-quakeplot_df2 <- quakeplot_df %>% 
-  mutate(title = "Annual Number of Earthquakes\n1980-2012")
-
-quakeplot2 <- quakeplot_df2 %>% 
-  filter(year >= 1980 & year <= 2012) %>% 
-  ggplot(aes(year, n)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
-
-quakeplot2 <- quakeplot2 + 
-  labs(x = NULL,
-       y = "Something (million square kilometers)") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1980, 2012, by = 2)) +
-  scale_y_continuous(limits = (c(0, 750)), breaks = seq(0, 750, by = 50))
-```
-
-#### meteor
-##### meteor mass
-```{r}
-meteorplot_df <- meteorplot_df %>% 
-  mutate(title = "Average Landed Meteor Mass\n1980-2013")
-
-meteorplot <- meteorplot_df %>% 
-  filter(year >= 1980) %>%
-  ggplot(aes(year, mass)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
-
-meteorplot <- meteorplot + 
-  labs(x = NULL,
-       y = "Something (million square kilometers)") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1980, 2013, by = 2)) +
-  scale_y_continuous(limits = (c(0, 11000)), breaks = seq(0, 11000, by = 1000))
-```
-
-##### meteor number
-```{r}
-meteorplot2 <- meteorplot_df %>% 
-  filter(year >= 1980) %>%
-  ggplot(aes(year, n)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
-
-meteorplot2 <- meteorplot2 + 
-  labs(x = NULL,
-       y = "Something (million square kilometers)") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1950, 2013, by = 2)) +
-  scale_y_continuous(limits = (c(0, 4000)), breaks = seq(0, 4000, by = 500))
-```
-
-#### diacyclops thomasi
-```{r}
-diathoplot_df <- diathoplot_df %>% 
-  mutate(title = "Average Diacyclops Thomasi Density\n1990-2020")
-
-diathoplot <- diathoplot_df %>% 
-  filter(year4 >= 1990) %>%
-  ggplot(aes(year4, dens)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
-
-diathoplot <- diathoplot + 
-  labs(x = NULL,
-       y = "Organisms per Liter of Water") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1990, 2020, by = 2)) +
-  scale_y_continuous(limits = (c(0, 20)), breaks = seq(0, 20, by = 1))
-```
-
-```{r}
-diatho_model <- lm(data = diathoplot_df, formula = dens ~ year4)
-summary(diatho_model)
-```
-
-```{r}
-diathoplot_df_n <- diathoplot_df_n %>% 
-  mutate(title = "Average Diacyclops Thomasi Population Density\n1990-2020")
-
-diathoplot_n <- diathoplot_df_n %>% 
-  filter(year4 >= 1990) %>%
-  ggplot(aes(year4, dens)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
-
-diathoplot_n <- diathoplot_n + 
-  labs(x = NULL,
-       y = "Organisms per Liter of Water") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1990, 2020, by = 2)) +
-  scale_y_continuous(limits = (c(0, 20)), breaks = seq(0, 20, by = 1))
-```
-
-#### groundwater
-```{r}
-waterecplot_df <- waterecplot_df %>% 
-  mutate(title = "Average whatever")
-
-waterplot <- waterecplot_df %>% 
-  filter(year >= 1981) %>%
-  ggplot(aes(year, mean)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
-
-waterplot <- waterplot + 
-  labs(x = NULL,
-       y = "Organisms per Liter of Water") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1981, 2019, by = 2)) +
-  scale_y_continuous(limits = (c(0, 7000)), breaks = seq(0, 7000, by = 1000))
-```
-
-```{r}
-water_model <- lm(data = waterecplot_df, formula = mean ~ year)
-summary(water_model)
-```
-
-### jittered
-#### arctic jittered plot
-```{r}
-j_arcticplot_df <- arctic_df %>% 
-  mutate(area = area+55,
-         title = "Average Something\n1979-2021")
-
-j_arcticplot <- j_arcticplot_df %>% 
-  filter(year >= 1980) %>% 
-  ggplot(aes(year, area)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .35, seed = 405)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .35, seed = 405))
-
-j_arcticplot <- j_arcticplot + 
-  labs(x = NULL,
-       y = "Something (million square kilometers)") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1980, 2021, by = 2)) +
-  scale_y_continuous(limits = (c(53, 61)), breaks = seq(53, 61, by = .5))
-
-arcticplot
-j_arcticplot
-```
-
-#### temp jittered plot
-```{r}
-j_tempplot_df <- tempplot_df %>% 
-  mutate(No_Smoothing = No_Smoothing+.5,
-         title = "Average Bromine Levels in Soil\n1981-2021")
-
-j_tempplot <- j_tempplot_df %>% 
-  filter(Year >= 1981) %>% 
-  ggplot(aes(Year, No_Smoothing)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = .2, seed = 404)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = .2, seed = 404))
-  
-j_tempplot <- j_tempplot + 
-  labs(x = NULL,
-       y = "Bromine (parts per million)") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(breaks = seq(1981, 2021, by = 2)) +
-  scale_y_continuous(limits = c(.5, 2), breaks = seq(.5, 2, by = .1))
-
-tempplot
-j_tempplot
-```
-
-#### ozone jittered plot
-```{r}
-j_ozoneplot_df <- ozoneplot_df %>% 
-  mutate(area = area-15,
-         title = "Average Actinomycete Abundance in Soil\n2000-2020")
-
-j_ozoneplot <- j_ozoneplot_df %>% 
-  filter(year >=2000 & year != 2021) %>%
-  ggplot(aes(year, area)) +
-  geom_point(size = 2, position = position_jitter(width = 0, height = 2.5, seed = 404)) +
-  geom_line(size = .7, position = position_jitter(width = 0, height = 2.5, seed = 404))
-  
-j_ozoneplot <- j_ozoneplot + 
-  labs(x = NULL,
-       y = "Number of Actinomycete (million cfu/g)") +
-  facet_grid(. ~ title) +
-  theme_linedraw() +
-  theme(
-    axis.text.x = element_text(face = "bold",
-                               color = "black",
-                               size = 11,
-                               angle = 45,
-                               vjust = .8),
-    axis.text.y = element_text(face = "bold",
-                               color = "black",
-                               size = 11),
-    axis.title.y = element_text(face = "bold",
-                                size = 11),
-    strip.background = element_rect(fill = "black"),
-    strip.text = element_text(size = 16,
-                              face = "bold",
-                              color = "white"),
-    axis.ticks = element_line(color = "black"),
-    panel.grid.major = element_line(color = "black", size = .3)) +
-  scale_x_continuous(limits = c(2000, 2020), breaks = seq(2000, 2020, by = 1)) +
-  scale_y_continuous(limits = c(0, 25), breaks = seq(0, 25, by = 5))
-
-ozoneplot
-j_ozoneplot
 ```
 
